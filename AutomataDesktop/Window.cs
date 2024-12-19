@@ -100,7 +100,7 @@ namespace AutomataDesktop
 
             ////////
             //if (KeyboardState.IsKeyReleased(Keys.Up))
-            if (KeyboardState.IsKeyDown(Keys.Up))
+            if (MouseState.IsButtonDown(MouseButton.Left))
             {
 
 
@@ -111,7 +111,7 @@ namespace AutomataDesktop
             }
 
             //if (KeyboardState.IsKeyReleased(Keys.Down))
-            if (KeyboardState.IsKeyDown(Keys.Down))
+            if (MouseState.IsButtonDown(MouseButton.Right))
             {
                 if (currentGenerationIndex > 0)
                 {
