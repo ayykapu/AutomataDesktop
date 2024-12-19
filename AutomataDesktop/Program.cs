@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using static System.Net.Mime.MediaTypeNames;
+﻿using OpenTK.Graphics.ES20;
+using System.Runtime.CompilerServices;
 
 namespace AutomataDesktop
 {
@@ -9,19 +9,37 @@ namespace AutomataDesktop
         {
             List<byte[,]> generationList = new List<byte[,]>();
 
-            int height = 1080 / 2;
-            int width = 1920 / 2;
-            byte[,] generation1 = CreateGenerationCheckerboardPattern(false, height, width);
-            byte[,] generation2 = CreateGenerationCheckerboardPattern(true, height, width);
+            byte[,] g1 = CreateGenerationCheckerboardPattern(true, 45, 80);
+            byte[,] g2 = CreateGenerationCheckerboardPattern(false, 45, 80);
 
-            generationList.Add(generation1);
-            generationList.Add(generation2);
-
-            Window window1 = new Window(1920, 1080, "TEST", generationList);
+            generationList.Add(g1);
+            generationList.Add(g2);
+            
+            Window window1 = new Window(1600, 900, "Cellualar Automata", generationList);
             window1.Run();
-
-            DisplayGeneration(generation1);
         }
+
+        private static int[] TranslateBytesIntoInts(byte[,] generation)
+        {
+            int cellSize = 1;
+
+            List<int> result = new List<int>();
+
+            for (int i = 0; i < generation.GetLength(0) * cellSize; i++)
+            {
+                for (int j = 0; j < generation.GetLength(1) * cellSize; j++)
+                {
+                    if (generation[i, j] != 0)
+                    {
+                        result.Add(j);
+                        result.Add(i);
+                    }
+                }
+            }
+
+            return result.ToArray();
+        }
+
         static byte[,] CreateGenerationCheckerboardPattern(bool startWithEmpty, int height, int width)
         {
             byte[,] result = new byte[height, width];

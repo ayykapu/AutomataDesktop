@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Platform.Windows;
@@ -15,9 +16,9 @@ namespace AutomataDesktop
         private int _vao;
         private int _vbo;
 
-        //static private float pixelSize = 1; //5
-        static List<byte[,]> _generations;
-        static private int[] _seed;
+        static int cellSize = 1; //5
+        static List<byte[,]> _generationList;
+        static int[] _currentGeneration; //this is where non 0s goes
 
         static int currentGenerationIndex = 0;
 
@@ -25,23 +26,12 @@ namespace AutomataDesktop
         {
             _width = width;
             _height = height;
-            _generations = generations;
+            _generationList = generations;
 
+            SetWindowIcon("icon.ico"); // Set the icon file path
             CenterWindow();
         }
-        private static void UpdateSeed()
-        {
-            Console.WriteLine($"Generation: {currentGenerationIndex}");
-            int[] newSeed = TranslateBytes(_generations[currentGenerationIndex]);
-
-            if (currentGenerationIndex != _generations.Count - 1)
-            {
-                currentGenerationIndex++;
-            }
-
-            _seed = newSeed;
-        }
-        private static int[] TranslateBytes(byte[,] generation)
+        private static int[] TranslateBytesIntoInts(byte[,] generation)
         {
             List<int> result = new List<int>();
 
@@ -49,13 +39,23 @@ namespace AutomataDesktop
             {
                 for (int j = 0; j < generation.GetLength(1); j++)
                 {
-                    result.Add(j + 2);
-                    result.Add(i + 2);
+                    if (generation[i, j] != 0)
+                    {
+                        for (int yOffset = 0; yOffset < cellSize; yOffset++)
+                        {
+                            for (int xOffset = 0; xOffset < cellSize; xOffset++)
+                            {
+                                result.Add(j * cellSize + xOffset);
+                                result.Add(i * cellSize + yOffset);
+                            }
+                        }
+                    }
                 }
             }
 
             return result.ToArray();
         }
+
         private float[] ConvertToNDC(int[] pixelCoordinates, int screenWidth, int screenHeight)
         {
             float[] ndcCoordinates = new float[pixelCoordinates.Length];
@@ -69,6 +69,10 @@ namespace AutomataDesktop
             }
 
             return ndcCoordinates;
+        }
+        private void SetWindowIcon(string iconPath)
+        {
+            //todo
         }
         protected override void OnLoad()
         {
@@ -86,14 +90,42 @@ namespace AutomataDesktop
         {
             base.OnUpdateFrame(e);
 
-            UpdateSeed();
-            float[] vertices = ConvertToNDC(_seed, _width, _height);
-            //int numberOfSquares = _seed.Length / 2;
-            //Console.WriteLine($"Expected number of squares: {numberOfSquares}");
+            if (KeyboardState.IsKeyDown(Keys.Up))
+            {
+                if (cellSize < 50)
+                {
+                    Console.WriteLine($"rendered pixels: {_currentGeneration.Length / 2}");
+                    cellSize += 1;
+                }
+            }
 
-            //for (int i = 0; i < _seed.Length; i++)
+            if (KeyboardState.IsKeyDown(Keys.Down))
+            {
+                if (cellSize > 1) 
+                {
+                    Console.WriteLine($"rendered pixels: {_currentGeneration.Length / 2}");
+                    cellSize += -1;
+                }
+            }
+
+            if (KeyboardState.IsKeyDown(Keys.N))
+            {
+                if (currentGenerationIndex == 0)
+                {
+                    currentGenerationIndex = 1;
+                } 
+                else if (currentGenerationIndex == 1)
+                {
+                    currentGenerationIndex = 0;
+                }
+            }
+
+            _currentGeneration = TranslateBytesIntoInts(_generationList[currentGenerationIndex]);
+            float[] vertices = ConvertToNDC(_currentGeneration, _width, _height);
+
+            //if (currentGenerationIndex != _generationList.Count - 1)
             //{
-            //    Console.WriteLine(_seed[i] + " -> " + vertices[i]);
+            //    currentGenerationIndex++;
             //}
 
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
@@ -111,14 +143,10 @@ namespace AutomataDesktop
 
             GL.BindVertexArray(_vao);
             GL.PointSize(1);
-            GL.DrawArrays(PrimitiveType.Points, 0, _seed.Length / 2);
+            GL.DrawArrays(PrimitiveType.Points, 0, _currentGeneration.Length / 2);
             GL.BindVertexArray(0);
 
             SwapBuffers();
-
-            //////////////
-            Console.ReadLine();
-            /////////////
         }
         protected override void OnUnload()
         {
