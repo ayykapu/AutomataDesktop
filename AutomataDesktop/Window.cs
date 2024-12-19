@@ -16,7 +16,7 @@ namespace AutomataDesktop
         private int _vao;
         private int _vbo;
 
-        static int cellSize = 1; //5
+        static int _cellSize = 1; //5
         static List<byte[,]> _generationList;
         static int[] _currentGeneration; //this is where non 0s goes
 
@@ -41,12 +41,12 @@ namespace AutomataDesktop
                 {
                     if (generation[i, j] != 0)
                     {
-                        for (int yOffset = 0; yOffset < cellSize; yOffset++)
+                        for (int yOffset = 0; yOffset < _cellSize; yOffset++)
                         {
-                            for (int xOffset = 0; xOffset < cellSize; xOffset++)
+                            for (int xOffset = 0; xOffset < _cellSize; xOffset++)
                             {
-                                result.Add(j * cellSize + xOffset);
-                                result.Add(i * cellSize + yOffset);
+                                result.Add(j * _cellSize + xOffset);
+                                result.Add(i * _cellSize + yOffset);
                             }
                         }
                     }
@@ -74,9 +74,19 @@ namespace AutomataDesktop
         {
             //todo
         }
+
+        private void SetDefaultCellsSize()
+        {
+            int generationWidth = _generationList[0].GetLength(1);
+
+            _cellSize = _width / generationWidth;
+            Console.WriteLine(_cellSize);
+        }
         protected override void OnLoad()
         {
             base.OnLoad();
+
+            SetDefaultCellsSize();
 
             GL.ClearColor(1f, 1f, 1f, 1f);
             GL.Enable(EnableCap.ProgramPointSize);
@@ -90,33 +100,20 @@ namespace AutomataDesktop
         {
             base.OnUpdateFrame(e);
 
-            if (KeyboardState.IsKeyDown(Keys.Up))
+            ////////
+            if (KeyboardState.IsKeyReleased(Keys.Up))
             {
-                if (cellSize < 50)
+                if (currentGenerationIndex < _generationList.Count - 1)
                 {
-                    Console.WriteLine($"rendered pixels: {_currentGeneration.Length / 2}");
-                    cellSize += 1;
+                    currentGenerationIndex++;
                 }
             }
 
-            if (KeyboardState.IsKeyDown(Keys.Down))
+            if (KeyboardState.IsKeyReleased(Keys.Down))
             {
-                if (cellSize > 1) 
+                if (currentGenerationIndex > 0)
                 {
-                    Console.WriteLine($"rendered pixels: {_currentGeneration.Length / 2}");
-                    cellSize += -1;
-                }
-            }
-
-            if (KeyboardState.IsKeyDown(Keys.N))
-            {
-                if (currentGenerationIndex == 0)
-                {
-                    currentGenerationIndex = 1;
-                } 
-                else if (currentGenerationIndex == 1)
-                {
-                    currentGenerationIndex = 0;
+                    currentGenerationIndex--;
                 }
             }
 
