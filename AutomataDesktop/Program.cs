@@ -8,31 +8,28 @@ namespace AutomataDesktop
     {
         static void Main(string[] args)
         {
-            List<byte[,]> generationList = new List<byte[,]>();
-
             int height = 45 * 2;
             int width = 80 * 2;
 
-            byte[,] generation = CreateGeneration(height, width, new int[] { 11, 50, 12, 49, 12, 50, 13, 50, 13, 51 });
+            List<byte[,]> generationList = new List<byte[,]>();
+            byte[,] generation = CreateGeneration(height, width, new ValueTuple<int, int>[] { }, true );
 
-
-            for (int i = 0; i < 350; i++)
+            for (int i = 0; i < 1000; i++)
             {
+                Console.WriteLine($"{i + 1}/1000");
                 generationList.Add(generation);
-
-                generation = GameOfLife(generation);
+                generation = FallingSandRule(generation);
             }
-
-
 
             Window window1 = new Window(1600, 900, "Cellualar Automata", generationList);
             window1.Run();
         }
-        static byte[,] CreateGeneration(int height, int width, int[] vectorsToFill)
+        static byte[,] CreateGeneration(int hight, int width, ValueTuple<int, int>[] vectors, bool isRandom)
         {
-            byte[,] result = new byte[height, width];
 
-            for (int i = 0; i < height; i++) 
+            byte[,] result = new byte[hight, width];
+
+            for (int i = 0; i < hight; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
@@ -40,74 +37,36 @@ namespace AutomataDesktop
                 }
             }
 
-            for (int i = 0; i < vectorsToFill.Length; i = i + 2)
+            if (!isRandom)
             {
-                result[vectorsToFill[i], vectorsToFill[i + 1]] = 1;
-            }
-
-            return result;
-        }
-        static byte[,] CreateGenerationCheckerboardPattern(bool startWithEmpty, int height, int width)
-        {
-            byte[,] result = new byte[height, width];
-
-            byte nextByte;
-
-            if (startWithEmpty) 
-            {
-                nextByte = 0; 
+                return FillGeneration(vectors, result);
             }
             else
             {
-                nextByte = 1;
-            }
+                List<(int, int)> randomVectorList = new List<(int, int)>();
 
-            for (int i = 0; i < height; i++)
-            {
-                for (int j = 0; j < width; j++)
+                Random random = new Random();
+                int numberOfRandomVectors = random.Next(0, 2000);
+                for (int i = 0; i < numberOfRandomVectors; i++)
                 {
-                    result[i, j] = nextByte;
-
-                    if (width % 2 != 0)
-                    {
-                        if (nextByte == 0)
-                        {
-                            nextByte = 1;
-                        }
-                        else
-                        {
-                            nextByte = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (j != width - 1)
-                        {
-                            if (nextByte == 0)
-                            {
-                                nextByte = 1;
-                            }
-                            else
-                            {
-                                nextByte = 0;
-                            }
-                        }
-                        else
-                        {
-                            if (nextByte == 0)
-                            {
-                                nextByte = 0;
-                            }
-                            else
-                            {
-                                nextByte = 1;
-                            }
-                        }
-                    }
+                    randomVectorList.Add((random.Next(0, hight), random.Next(0, width)));
                 }
+
+                randomVectorList.Distinct();
+
+                ValueTuple<int, int>[] randomVectors = randomVectorList.ToArray();
+
+                return FillGeneration(randomVectors, result);
+            }
+        }
+        static byte[,] FillGeneration(ValueTuple<int, int>[] vectors, byte[,] generation)
+        {
+            foreach (ValueTuple<int, int> vector in vectors)
+            {
+                generation[vector.Item1, vector.Item2] = 1;
             }
 
-            return result;
+            return generation;
         }
         static void DisplayGeneration(byte[,] generation)
         {
@@ -158,7 +117,7 @@ namespace AutomataDesktop
             int hight = generation.GetLength(0);
             int width = generation.GetLength(1);
 
-            byte[,] result = CreateGeneration(hight, width, new int[] {} );
+            byte[,] result = new byte[hight, width];
 
             for (int i = 0; i < hight; i++)
             {
@@ -190,7 +149,7 @@ namespace AutomataDesktop
             int hight = generation.GetLength(0);
             int width = generation.GetLength(1);
 
-            byte[,] result = CreateGeneration(hight, width, new int[] { } );
+            byte[,] result = new byte[hight, width];
 
             for (int i = 0; i < hight; i++)
             {
@@ -210,6 +169,56 @@ namespace AutomataDesktop
                     else
                     {
                         result[i, j] = 0;
+                    }
+                }
+            }
+
+            return result;
+        }
+        static byte[,] FallingSandRule(byte[,] generation)
+        {
+            int hight = generation.GetLength(0);
+            int width = generation.GetLength(1);
+
+            byte[,] result = new byte[hight, width];
+
+            for (int i = 0; i < hight; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    byte thisCellState = generation[i, j];
+
+                    ValueTuple<int, int> top = GetTop((i, j), generation);
+                    ValueTuple<int, int> down = GetDown((i, j), generation);
+
+                    byte topState = generation[top.Item1, top.Item2];
+                    byte downState = generation[down.Item1, down.Item2];
+
+                    if (i == 0)
+                    {
+                        result[i, j] = 0;
+                    }
+                    else if (i > 0 && i < hight - 1)
+                    {
+                        if (topState == 1 && thisCellState == 0 || downState == 1 && thisCellState == 1)
+                        {
+                            result[i, j] = 1;
+                        }
+                        else
+                        {
+                            result[i, j] = 0;
+                        }
+                    }
+                    else
+                    {
+                        if (topState == 1 || thisCellState == 1)
+                        {
+                            result[i, j] = 1;
+                        }
+                        else
+                        {
+                            result[i, j] = 0;
+                        }
                     }
                 }
             }

@@ -55,7 +55,6 @@ namespace AutomataDesktop
 
             return result.ToArray();
         }
-
         private float[] ConvertToNDC(int[] pixelCoordinates, int screenWidth, int screenHeight)
         {
             float[] ndcCoordinates = new float[pixelCoordinates.Length];
@@ -74,13 +73,12 @@ namespace AutomataDesktop
         {
             //todo
         }
-
         private void SetDefaultCellsSize()
         {
             int generationWidth = _generationList[0].GetLength(1);
+            int generationHeiht = _generationList[0].GetLength(0);
 
             _cellSize = _width / generationWidth;
-            Console.WriteLine(_cellSize);
         }
         protected override void OnLoad()
         {
@@ -101,15 +99,19 @@ namespace AutomataDesktop
             base.OnUpdateFrame(e);
 
             ////////
-            if (KeyboardState.IsKeyReleased(Keys.Up))
+            //if (KeyboardState.IsKeyReleased(Keys.Up))
+            if (KeyboardState.IsKeyDown(Keys.Up))
             {
+
+
                 if (currentGenerationIndex < _generationList.Count - 1)
                 {
                     currentGenerationIndex++;
                 }
             }
 
-            if (KeyboardState.IsKeyReleased(Keys.Down))
+            //if (KeyboardState.IsKeyReleased(Keys.Down))
+            if (KeyboardState.IsKeyDown(Keys.Down))
             {
                 if (currentGenerationIndex > 0)
                 {
@@ -119,11 +121,6 @@ namespace AutomataDesktop
 
             _currentGeneration = TranslateBytesIntoInts(_generationList[currentGenerationIndex]);
             float[] vertices = ConvertToNDC(_currentGeneration, _width, _height);
-
-            //if (currentGenerationIndex != _generationList.Count - 1)
-            //{
-            //    currentGenerationIndex++;
-            //}
 
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
