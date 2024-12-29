@@ -8,15 +8,25 @@ namespace AutomataDesktop
     {
         static void Main(string[] args)
         {
-            int height = 45 * 2;
-            int width = 80 * 2;
+            int width = 160;
+            int height = 90;
 
             List<byte[,]> generationList = new List<byte[,]>();
-            byte[,] generation = CreateGeneration(height, width, new ValueTuple<int, int>[] { }, true );
+            byte[,] generation = CreateGeneration(width, height, new ValueTuple<int, int>[] 
+            { 
+                (250, 250) 
+                //(11, 50), (12, 49), (12, 50), (13, 50), (13, 51), //GOL
+                //(11, 50 + 20), (12, 49 + 20), (12, 50 + 20), (13, 50 + 20), (13, 51 + 20),
+                //(11, 50 + 40), (12, 49 + 40), (12, 50 + 40), (13, 50 + 40), (13, 51 + 40),
+                //(11, 50 + 60), (12, 49 + 60), (12, 50 + 60), (13, 50 + 60), (13, 51 + 60),
+            }, true);
 
-            for (int i = 0; i < 1000; i++)
+            int generationsToRender = 500;
+
+            for (int i = 0; i < generationsToRender; i++)
+
             {
-                Console.WriteLine($"{i + 1}/1000");
+                Console.WriteLine($"{i + 1}/{generationsToRender}");
                 generationList.Add(generation);
                 generation = FallingSandRule(generation);
             }
@@ -24,12 +34,12 @@ namespace AutomataDesktop
             Window window1 = new Window(1600, 900, "Cellualar Automata", generationList);
             window1.Run();
         }
-        static byte[,] CreateGeneration(int hight, int width, ValueTuple<int, int>[] vectors, bool isRandom)
+        static byte[,] CreateGeneration(int width, int height, ValueTuple<int, int>[] vectors, bool isRandom)
         {
 
-            byte[,] result = new byte[hight, width];
+            byte[,] result = new byte[height, width];
 
-            for (int i = 0; i < hight; i++)
+            for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
@@ -49,7 +59,7 @@ namespace AutomataDesktop
                 int numberOfRandomVectors = random.Next(0, 2000);
                 for (int i = 0; i < numberOfRandomVectors; i++)
                 {
-                    randomVectorList.Add((random.Next(0, hight), random.Next(0, width)));
+                    randomVectorList.Add((random.Next(0, height), random.Next(0, width)));
                 }
 
                 randomVectorList.Distinct();
@@ -67,43 +77,6 @@ namespace AutomataDesktop
             }
 
             return generation;
-        }
-        static void DisplayGeneration(byte[,] generation)
-        {
-            string resultString = "";
-
-            for (int i = 0; i < generation.GetLength(0); i++)
-            {
-                for (int j = 0; j < generation.GetLength(1); j++)
-                {
-
-                    if (generation[i, j] == 0)
-                    {
-                        resultString += "(0)";
-                    }
-
-                    if (generation[i, j] == 1)
-                    {
-                        resultString += "(1)";
-                    }
-
-                    if (generation[i, j] == 2)
-                    {
-                        resultString += "?";
-                    }
-
-                    if (j == generation.GetLength(1) - 1)
-                    {
-                        resultString += "\n";
-                    }
-                    else
-                    {
-                        resultString += " ";
-                    }
-                }
-            }
-
-            Console.WriteLine(resultString);
         }
 
 
@@ -225,10 +198,6 @@ namespace AutomataDesktop
 
             return result;
         }
-
-
-
-
 
         static int NeighboursStateCount(ValueTuple<int, int> vector, byte stateToCheck, bool isVonNeumann, byte[,] generation)
         {

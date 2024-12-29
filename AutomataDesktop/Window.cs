@@ -16,11 +16,11 @@ namespace AutomataDesktop
         private int _vao;
         private int _vbo;
 
-        static int _cellSize = 1; //5
+        static int _cellSize;
         static List<byte[,]> _generationList;
         static int[] _currentGeneration; //this is where non 0s goes
 
-        static int currentGenerationIndex = 0;
+        static int currentGenerationIndex = 1;
 
         public Window(int width, int height, string title, List<byte[,]> generations) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
         {
@@ -76,8 +76,6 @@ namespace AutomataDesktop
         private void SetDefaultCellsSize()
         {
             int generationWidth = _generationList[0].GetLength(1);
-            int generationHeiht = _generationList[0].GetLength(0);
-
             _cellSize = _width / generationWidth;
         }
         protected override void OnLoad()
@@ -85,6 +83,8 @@ namespace AutomataDesktop
             base.OnLoad();
 
             SetDefaultCellsSize();
+
+            Console.WriteLine(_cellSize);
 
             GL.ClearColor(1f, 1f, 1f, 1f);
             GL.Enable(EnableCap.ProgramPointSize);
@@ -98,26 +98,42 @@ namespace AutomataDesktop
         {
             base.OnUpdateFrame(e);
 
-            ////////
-            //if (KeyboardState.IsKeyReleased(Keys.Up))
             if (MouseState.IsButtonDown(MouseButton.Left))
             {
-
-
                 if (currentGenerationIndex < _generationList.Count - 1)
                 {
                     currentGenerationIndex++;
+                    Console.WriteLine(currentGenerationIndex);
                 }
             }
 
-            //if (KeyboardState.IsKeyReleased(Keys.Down))
             if (MouseState.IsButtonDown(MouseButton.Right))
             {
                 if (currentGenerationIndex > 0)
                 {
                     currentGenerationIndex--;
+                    Console.WriteLine(currentGenerationIndex);
                 }
             }
+
+            if (KeyboardState.IsKeyReleased(Keys.Right))
+            {
+                if (currentGenerationIndex < _generationList.Count - 1)
+                {
+                    currentGenerationIndex++;
+                    Console.WriteLine(currentGenerationIndex);
+                }
+            }
+
+            if (KeyboardState.IsKeyReleased(Keys.Left))
+            {
+                if (currentGenerationIndex > 0)
+                {
+                    currentGenerationIndex--;
+                    Console.WriteLine(currentGenerationIndex);
+                }
+            }
+
 
             _currentGeneration = TranslateBytesIntoInts(_generationList[currentGenerationIndex]);
             float[] vertices = ConvertToNDC(_currentGeneration, _width, _height);
