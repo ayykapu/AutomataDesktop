@@ -22,6 +22,7 @@ namespace AutomataDesktop
 
             _sequence.Add(SetGenerationZero(vectors));
         }
+
         byte[,] SetGenerationZero(ValueTuple<int, int, byte>[] vectors)
         {
             byte[,] result = new byte[_generationHeight, _generationWidth];
@@ -33,6 +34,7 @@ namespace AutomataDesktop
 
             return result;
         }
+
         public void AddNextGeneration()
         {
             switch (_ruleSet)
