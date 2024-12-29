@@ -1,8 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Platform.Windows;
+﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -16,20 +12,28 @@ namespace AutomataDesktop
         private int _vao;
         private int _vbo;
 
+        static Automata _automata;
+        static int _displayIndex = 0;
+        static int[] _currentGeneration;
+
         static int _cellSize;
-        static List<byte[,]> _generationList;
-        static int[] _currentGeneration; //this is where non 0s goes
 
-        static int currentGenerationIndex = 1;
-
-        public Window(int width, int height, string title, List<byte[,]> generations) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
+        public Window(int width, int height, string title, Automata automata) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
         {
             _width = width;
             _height = height;
-            _generationList = generations;
+            _automata = automata;
 
-            SetWindowIcon("icon.ico"); // Set the icon file path
+            SetWindowIcon("icon.ico");
             CenterWindow();
+        }
+        private void SetWindowIcon(string iconPath)
+        {
+            //todo
+        }
+        private void SetDefaultCellsSize()
+        {
+            _cellSize = _width / _automata._generationWidth;
         }
         private static int[] TranslateBytesIntoInts(byte[,] generation)
         {
@@ -69,15 +73,6 @@ namespace AutomataDesktop
 
             return ndcCoordinates;
         }
-        private void SetWindowIcon(string iconPath)
-        {
-            //todo
-        }
-        private void SetDefaultCellsSize()
-        {
-            int generationWidth = _generationList[0].GetLength(1);
-            _cellSize = _width / generationWidth;
-        }
         protected override void OnLoad()
         {
             base.OnLoad();
@@ -100,47 +95,50 @@ namespace AutomataDesktop
 
             if (MouseState.IsButtonDown(MouseButton.Left))
             {
-                if (currentGenerationIndex < _generationList.Count - 1)
+                if (_displayIndex < _automata._sequence.Count - 1)
                 {
-                    currentGenerationIndex++;
-                    Console.WriteLine(currentGenerationIndex);
+                    _displayIndex++;
+                    Console.WriteLine(_displayIndex);
                 }
             }
 
             if (MouseState.IsButtonDown(MouseButton.Right))
             {
-                if (currentGenerationIndex > 0)
+                if (_displayIndex > 0)
                 {
-                    currentGenerationIndex--;
-                    Console.WriteLine(currentGenerationIndex);
+                    _displayIndex--;
+                    Console.WriteLine(_displayIndex);
                 }
             }
 
             if (KeyboardState.IsKeyReleased(Keys.Right))
             {
-                if (currentGenerationIndex < _generationList.Count - 1)
+                if (_displayIndex < _automata._sequence.Count - 1)
                 {
-                    currentGenerationIndex++;
-                    Console.WriteLine(currentGenerationIndex);
+                    _displayIndex++;
+                    Console.WriteLine(_displayIndex);
                 }
             }
 
             if (KeyboardState.IsKeyReleased(Keys.Left))
             {
-                if (currentGenerationIndex > 0)
+                if (_displayIndex > 0)
                 {
-                    currentGenerationIndex--;
-                    Console.WriteLine(currentGenerationIndex);
+                    _displayIndex--;
+                    Console.WriteLine(_displayIndex);
                 }
             }
 
-
-            _currentGeneration = TranslateBytesIntoInts(_generationList[currentGenerationIndex]);
+            _currentGeneration = TranslateBytesIntoInts(_automata._sequence[_displayIndex]);
             float[] vertices = ConvertToNDC(_currentGeneration, _width, _height);
 
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+
+            _automata.AddNextGeneration();
+            Console.WriteLine(_automata._sequence.Count);
+
             GL.EnableVertexAttribArray(0);
 
             GL.BindVertexArray(0);
